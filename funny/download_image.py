@@ -6,23 +6,20 @@ website_url = 'http://www.jj20.com/bz/nxxz/list_7_2.html'
 website_encode = 'gb2312'
 image_save_folder_path = 'C:\\Users\\huangbiao\\Desktop\\download_mm'
 
-"""
-打开url，返回html
-"""
-
 
 def _open_url(url):
+    """
+    打开url，返回html
+    """
     resp = httputil.urlopen(url)
     byte_data = resp.read()
     return byte_data
 
 
-"""
-从html中查找出图片地址
-"""
-
-
 def _find_image_address(byte_data):
+    """
+    从html中查找出图片地址
+    """
     html = byte_data.decode(website_encode)
     # 查找img.*src="开头，以.jpg结尾的字符串列表
     image_address = re.findall("img.*src=\"(.*?).jpg", html)
@@ -30,13 +27,11 @@ def _find_image_address(byte_data):
     return image_address
 
 
-"""
-如果文件夹不存在，则创建
-如果文件夹已存在，则清空文件下的所有文件
-"""
-
-
 def _create_if_not_exist_folder(image_save_path):
+    """
+    如果文件夹不存在，则创建
+    如果文件夹已存在，则清空文件下的所有文件
+    """
     if not os.path.exists(image_save_path):
         os.mkdir(image_save_path)
     else:
@@ -47,12 +42,10 @@ def _create_if_not_exist_folder(image_save_path):
                 print("删除图片: %s" % image_full_path)
 
 
-"""
-保存图片
-"""
-
-
 def _save_image(image_address):
+    """
+    保存图片
+    """
     for image_url in image_address:
         # 从url中获取图片名称
         file_name = image_url.split('/')[-1]
@@ -63,12 +56,10 @@ def _save_image(image_address):
             print("保存图片: %s" % file_full_path)
 
 
-"""
-下载
-"""
-
-
 def download():
+    """
+    下载
+    """
     # 打开网站网页
     byte_data = _open_url(website_url)
     # 根据html查找满足条件的图片地址
