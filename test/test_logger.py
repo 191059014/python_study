@@ -1,4 +1,4 @@
-from toolkit.logger_demo.log import Logger
+from toolkit.logger.log import Logger
 
 
 class TestLogger():

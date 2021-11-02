@@ -1,7 +1,7 @@
 from sqlalchemy import Column, String, Integer
 
-from toolkit.sqlalchemy_demo.base import BaseDO, Base
-from toolkit.sqlalchemy_demo.db import MysqlUtil
+from toolkit.sqlalchemy.base import BaseDO, Base
+from toolkit.sqlalchemy.db import MysqlUtil
 
 
 class SysUser(BaseDO):
