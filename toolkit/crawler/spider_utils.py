@@ -1,7 +1,34 @@
 import json
 from urllib import request
+from urllib.request import Request
 
 _DEFAULT_ENCODING = 'utf-8'
+user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/95.0.4638.69 Safari/537.36'
+proxys = [
+    {'http': '220.173.37.128:7890'},
+    {'http': '120.26.160.120:7890'},
+    {'http': '14.20.235.129:34100'},
+]
+
+
+def get_bytes_security_from_remote(url) -> bytes:
+    """
+    从远程获取字节数据
+    :return: 数据
+    """
+    req = Request(url)
+    req.add_header('User-Agent', user_agent)
+    for proxy in proxys:
+        try:
+            proxy_handler = request.ProxyHandler(proxy)
+            opener = request.build_opener(proxy_handler)
+            resp = opener.open(req)
+            if resp:
+                print("Invoke Remote Success, Proxy=%s" % proxy)
+                return resp.read()
+        except Exception as e:
+            print("Invalid Proxy=%s" % proxy)
+    raise Exception('Invoke Remote Failed')
 
 
 def get_bytes_from_remote(url) -> bytes:
