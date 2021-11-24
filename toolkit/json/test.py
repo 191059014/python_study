@@ -20,7 +20,7 @@ if __name__ == '__main__':
     province_city_list = []
     province_city_list.append({"code": "001", "name": "湖北省", "citys": [{"code": "001001", "name": "武汉市"}]})
     province_city_list.append({"code": "002", "name": "深圳市", "citys": [{"code": "002001", "name": "深圳市"}]})
-    write_file(province_city_list, '../../test/city.json')
+    write_file(province_city_list, '../../temp/city.json')
 
-    city_json_obj = read_file('../../test/city.json')
+    city_json_obj = read_file('../../temp/city.json')
     print(city_json_obj)

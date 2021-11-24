@@ -70,5 +70,5 @@ def _any_col_is_not_empty(row):
 
 
 if __name__ == '__main__':
-    write_excel('../../test/test.xls', ['用户名', '密码', '性别'], [('张三', '123456', 'M'), ('李四', '123456789', 'F')])
-    print(read_excel('../../test/test.xls'))
+    write_excel('../../temp/test.xls', ['用户名', '密码', '性别'], [('张三', '123456', 'M'), ('李四', '123456789', 'F')])
+    print(read_excel('../../temp/test.xls'))

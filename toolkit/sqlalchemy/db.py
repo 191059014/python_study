@@ -20,7 +20,7 @@ class MysqlUtil():
         if not self.__engine:
             host = 'localhost'
             port = 3306
-            database = 'test'
+            database = 'temp'
             username = 'root'
             password = 'root3306'
             db_connection = 'mysql+pymysql://{0}:{1}@{2}:{3}/{4}'.format(username, password, host, port, database)

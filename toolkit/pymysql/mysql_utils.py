@@ -9,13 +9,13 @@ def get_db(env='local') -> pymysql.Connection:
     """
     db_connect = None
     if env == 'local':
-        db_connect = pymysql.connect(host="localhost", database="test", user="root", password="root3306")
+        db_connect = pymysql.connect(host="localhost", database="temp", user="root", password="root3306")
     elif env == 'dev':
         db_connect = pymysql.connect(host="localhost", database="platform", user="root", password="root3306")
     elif env == 'sit':
-        db_connect = pymysql.connect(host="localhost", database="test", user="root", password="root3306")
+        db_connect = pymysql.connect(host="localhost", database="temp", user="root", password="root3306")
     elif env == 'prod':
-        db_connect = pymysql.connect(host="localhost", database="test", user="root", password="root3306")
+        db_connect = pymysql.connect(host="localhost", database="temp", user="root", password="root3306")
     else:
         pass
     print("获取连接成功：%s" % db_connect.get_host_info())
