@@ -42,12 +42,12 @@ def do_static_webpage_spider(url, encoding='utf-8'):
     # 重试三次
     for i in range(4):
         if (i > 0):
-            print("retry %s times, waiting..." % i)
+            print("Retry %s times, waiting..." % i)
         # 每次请求间隔2秒钟，防止被封
         time.sleep(2)
-        for i in range(10):
+        for i in range(5):
             # 随机获取代理
-            index = random.randint(0, len(PROXYS))
+            index = random.randint(0, len(PROXYS) - 1)
             proxy = PROXYS[index]
             try:
                 resp = requests.get(url, headers={'User-Agent': USER_AGENT}, proxies=proxy)
@@ -56,6 +56,7 @@ def do_static_webpage_spider(url, encoding='utf-8'):
                     raise RuntimeError("code: " + str(status_code) + ', message: ' + resp.reason)
                 return resp.content.decode(encoding)
             except Exception as e:
+                print("For the %s times, user proxy fail, %s, %s" % (i + 1, proxy, e))
                 last_exception = e
     if last_exception is not None:
         raise RuntimeError("静态网页[%s]爬取失败: %s" % (url, str(last_exception)))
