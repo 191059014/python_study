@@ -28,7 +28,7 @@ PROXYS = [
 
 
 def invoke(proxy):
-    url = "https://www.mcmssc.com/0_69/"
+    url = "https://www.mcmssc.com/0_69/41890.html"
     resp = requests.get(url, headers={'User-Agent': USER_AGENT}, proxies=proxy)
     status_code = resp.status_code
     if status_code != 200:
@@ -36,5 +36,4 @@ def invoke(proxy):
 
 
 for proxy in PROXYS:
-    invoke(proxy)
     threading.Thread(target=invoke, args=(proxy,)).start()
