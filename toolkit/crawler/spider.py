@@ -23,6 +23,8 @@ def do_static_webpage_spider(url, encoding='utf-8'):
     last_exception = None
     # 重试三次
     for i in range(3):
+        if (i > 0):
+            print("retry %s times, waiting..." % i)
         # 每次请求间隔2秒钟，防止被封
         time.sleep(2)
         for proxy in PROXYS:
@@ -48,6 +50,8 @@ def do_dynamic_webpage_spider(url, wait_js_load_sec=3):
     last_exception = None
     # 重试三次
     for i in range(3):
+        if (i > 0):
+            print("retry %s times, waiting..." % i)
         try:
             # 设置Chrome不弹出界面，实现无界面爬取
             chrome_options = Options()

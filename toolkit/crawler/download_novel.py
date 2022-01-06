@@ -2,9 +2,9 @@
 下载小说
 """
 import re
+import threading
 
 from lxml import etree
-from concurrent.futures import ThreadPoolExecutor
 
 import spider
 
@@ -64,10 +64,10 @@ def do_spider(url, chapter_xpath, title_xpath, content_xpath, save_file_path, st
     for i in range(len(chapter_full_urls)):
         title, chapter_contents = parse_detail_page(chapter_full_urls[i], title_xpath, content_xpath, encoding)
         all_chapter_contents.append(title + "\r\n".join(chapter_contents))
-        print("%s，爬取完成" % title)
+        print("爬取完成 ---> %s" % title)
     # 保存到文件
     save_to_file(save_file_path % (str(start + 1) + "_" + str(end)), all_chapter_contents, encoding)
-    print("第%s章-第%s章，爬取成功" % (start + 1, end))
+    print("====================第%s章-第%s章，爬取完成====================" % (start + 1, end))
 
 
 if __name__ == '__main__':
@@ -76,4 +76,12 @@ if __name__ == '__main__':
     title_xpath = "//div[@class='bookname']//h1[1]/text()"
     content_xpath = "//div[@id='content']/text()"
     save_file_path = "C:\\Users\\huangbiao\\Desktop\\最强狂兵_%s.txt"
-    do_spider(home_url, chapter_xpath, title_xpath, content_xpath, save_file_path, 1000, 2000, "utf-8")
+    # 爬取章节范围
+    chapter_num_scopes = [
+        (3000, 3500),
+        (3500, 4000)
+    ]
+    for start, end in chapter_num_scopes:
+        args = (home_url, chapter_xpath, title_xpath, content_xpath, save_file_path, start, end, "utf-8")
+        t = threading.Thread(target=do_spider, args=args)
+        t.start()
