@@ -78,8 +78,8 @@ if __name__ == '__main__':
     save_file_path = "C:\\Users\\huangbiao\\Desktop\\最强狂兵_%s.txt"
     # 爬取章节范围
     chapter_num_scopes = [
-        (3000, 3500),
-        (3500, 4000)
+        (3000, 4000),
+        (4000, 5000)
     ]
     for start, end in chapter_num_scopes:
         args = (home_url, chapter_xpath, title_xpath, content_xpath, save_file_path, start, end, "utf-8")

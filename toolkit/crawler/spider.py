@@ -1,3 +1,4 @@
+import random
 import time
 
 import requests
@@ -8,8 +9,25 @@ from selenium.webdriver.chrome.service import Service
 USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.110 Safari/537.36'
 PROXYS = [
     {'http': '220.173.37.128:7890'},
+    {'http': '118.180.166.195:8060'},
     {'http': '120.26.160.120:7890'},
+    {'http': '139.9.2.31:8081'},
     {'http': '14.20.235.129:34100'},
+    {'http': '58.20.235.180:9091'},
+    {'http': '118.180.166.195:8060'},
+    {'http': '47.92.234.75:80'},
+    {'http': '47.56.69.11:8000'},
+    {'http': '183.247.211.151:30001'},
+    {'http': '180.97.87.63:80'},
+    {'http': '111.3.118.247:30001'},
+    {'http': '221.125.138.189:8380'},
+    {'http': '47.106.105.236:80'},
+    {'http': '218.75.102.198:8000'},
+    {'http': '152.136.62.181:9999'},
+    {'http': '47.243.190.108:7890'},
+    {'http': '115.235.18.113:9000'},
+    {'http': '183.23.72.86:3128'},
+    {'http': '117.114.149.66:55443'}
 ]
 
 
@@ -22,12 +40,15 @@ def do_static_webpage_spider(url, encoding='utf-8'):
     """
     last_exception = None
     # 重试三次
-    for i in range(3):
+    for i in range(4):
         if (i > 0):
             print("retry %s times, waiting..." % i)
         # 每次请求间隔2秒钟，防止被封
         time.sleep(2)
-        for proxy in PROXYS:
+        for i in range(10):
+            # 随机获取代理
+            index = random.randint(0, len(PROXYS))
+            proxy = PROXYS[index]
             try:
                 resp = requests.get(url, headers={'User-Agent': USER_AGENT}, proxies=proxy)
                 status_code = resp.status_code
