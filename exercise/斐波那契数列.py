@@ -4,7 +4,7 @@
 """
 
 
-def get_item(n):
+def get_fibonacci(n):
     """
     获取第n个数的值
     """
@@ -13,9 +13,9 @@ def get_item(n):
     if n == 2:
         return 1
     else:
-        return get_item(n - 1) + get_item(n - 2)
+        return get_fibonacci(n - 1) + get_fibonacci(n - 2)
 
 
 if __name__ == '__main__':
     for i in range(1, 10):
-        print(get_item(i), end=',')
+        print(get_fibonacci(i), end=',')
