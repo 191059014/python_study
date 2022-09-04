@@ -30,11 +30,11 @@
 """
 '''
 匈牙利算法(求二分图的最大匹配):要用到递归,思想:后来者居上
+首先要明确：奇数+偶数 的结果才有可能是素数
 '''
 
 
-# 1.判断是否是素数(若在1到该数平方根之间都没有可除尽的数)
-def is_prime(num):
+def is_susu(num):
     if num == 1:
         return False
     for i in range(2, int(num ** 0.5) + 1):
@@ -43,39 +43,24 @@ def is_prime(num):
     return True
 
 
-# 2.寻找'增广路径'(这个数可否匹配,该跟谁连)
-def find(odd, visited, choose, evens):
-    for j, even in enumerate(evens):  # 扫描每个待被匹配的even
-        if is_prime(odd + even) and not visited[j]:
-            visited[j] = True
-            if choose[j] == 0 or find(choose[j], visited, choose, evens):
-                # 如果第j位even还没被选 或者 选它的那个odd还有别的选择even可以选择,那就把这位even让给当前的odd
-                choose[j] = odd
-                return True  # 说明匹配
-    return False
+total = int(input())
+arr = list(map(int, input().split()))
+jishu_arr = list(filter(lambda x: x % 2 == 1, arr))
+oushu_arr = list(filter(lambda x: x % 2 == 0, arr))
+is_select_arr = [[False] * len(oushu_arr)] * len(jishu_arr)
 
 
-# 3.开始odd先生和even小姐们入场,并各自到自己队列,开始匹配
-while True:
-    try:
-        n = int(input())
-        nums = list(map(int, input().split()))
-        count = 0
-        # 奇数+奇数 = 偶数, 偶数 + 偶数 = 偶数,都不能成为素数.只能奇数+偶数的组合才有可能
-        odds, evens = [], []  # 把数分为奇数和偶数
-        # 每次拿一个数,添加到对应的list里
-        for num in nums:
-            if num % 2 == 1:
-                odds.append(num)
-            else:
-                evens.append(num)
+def dfs(jishu_arr, oushu_arr, is_select_arr):
+    max_res = 0
+    for i in range(len(jishu_arr)):
+        for j in range(len(oushu_arr)):
+            single_res = 0
+            if not is_select_arr[i][j] and is_susu(jishu_arr[i] + oushu_arr[j]):
+                is_select_arr[i][j] = True
+                single_res = dfs(jishu_arr, oushu_arr, is_select_arr) + 1
+                is_select_arr[i][j] = False
+            max_res = max(max_res, single_res)
+    return max_res
 
-        # 对每个odd,去找自己的even
-        choose = [0] * len(evens)  # 用来装匹配这位even的对应的odd先生
-        for odd in odds:
-            visited = [False] * len(evens)
-            if find(odd, visited, choose, evens):
-                count += 1
-        print(count)
-    except:
-        break
+
+print(dfs(jishu_arr, oushu_arr, is_select_arr))
