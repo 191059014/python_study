@@ -106,7 +106,7 @@ def read_excel(filepath: str, sheetName: str = None, filterFunction=None):
     :param filterFunction: 过滤的函数
     """
     df = pd.read_excel(filepath, sheet_name=sheetName)
-    return __transfer_dataframe_and_filter(df, filterFunction)
+    return transfer_dataframe_and_filter(df, filterFunction)
 
 
 def read_csv(filepath: str, filterFunction=None):
@@ -116,10 +116,10 @@ def read_csv(filepath: str, filterFunction=None):
     :param filterFunction: 过滤的函数
     """
     df = pd.read_csv(filepath, low_memory=True)
-    return __transfer_dataframe_and_filter(df, filterFunction)
+    return transfer_dataframe_and_filter(df, filterFunction)
 
 
-def __transfer_dataframe_and_filter(df: pd.DataFrame, filterFunction=None):
+def transfer_dataframe_and_filter(df: pd.DataFrame, filterFunction=None):
     columns = df.columns
     values = df.values
     datas = []
