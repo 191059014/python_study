@@ -98,6 +98,19 @@ def crawl_web_page(url, retryTimes=1, encoding=None) -> BeautifulSoup | None:
         return bs4.BeautifulSoup(html, parser='html.parser')
 
 
+def create_excel(filename: str, datas, headers=None):
+    """
+    创建excel表格
+    :param filename: 文件名称
+    :param datas: 表格所有数据
+    :param headers: 表格的表头
+    """
+    df = pd.DataFrame(data=datas, columns=headers)
+    filepath = get_destop_path(filename + "_" + get_now_timestamp(TIMESTAMP_DAY_FORMAT) + ".xls")
+    df.to_excel(filepath, index=False)
+    print('导出完成', filepath)
+
+
 def read_excel(filepath: str, sheetName: str = None, filterFunction=None):
     """
     读取excel表格
@@ -130,19 +143,6 @@ def transfer_dataframe_and_filter(df: pd.DataFrame, filterFunction=None):
         if filterFunction is None or filterFunction(rowData):
             datas.append(rowData)
     return datas
-
-
-def create_excel(filename: str, datas, headers=None):
-    """
-    创建excel表格
-    :param filename: 文件名称
-    :param datas: 表格所有数据
-    :param headers: 表格的表头
-    """
-    df = pd.DataFrame(data=datas, columns=headers)
-    filepath = get_destop_path(filename + "_" + get_now_timestamp(TIMESTAMP_DAY_FORMAT) + ".xls")
-    df.to_excel(filepath, index=False)
-    print('导出完成', filepath)
 
 
 if __name__ == '__main__':
