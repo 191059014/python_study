@@ -17,6 +17,20 @@ TIMESTAMP_SECONDS_FORMAT = '%Y%m%d%H%M%S'
 TIMESTAMP_MICROSECONDS_FORMAT = '%Y%m%d%H%M%S%f'
 
 
+def is_empty(obj):
+    if obj is None:
+        return True
+    if obj != obj:
+        return True
+    if isinstance(obj, str):
+        return len(str) == 0 or obj.isspace()
+    return False
+
+
+def is_not_empty(obj):
+    return not is_empty(obj)
+
+
 def get_destop_path(filename):
     return 'C:\\Users\\19105\\Desktop\\' + filename
 
@@ -108,7 +122,7 @@ def create_excel(filename: str, datas, headers=None):
     df = pd.DataFrame(data=datas, columns=headers)
     filepath = get_destop_path(filename + "_" + get_now_timestamp(TIMESTAMP_DAY_FORMAT) + ".xls")
     df.to_excel(filepath, index=False)
-    print('导出完成', filepath)
+    print('创建完成，共%s行，%s' % (filepath, str(len(datas))))
 
 
 def read_excel(filepath: str, sheetName: str = None, filterFunction=None):
@@ -122,6 +136,43 @@ def read_excel(filepath: str, sheetName: str = None, filterFunction=None):
     return transfer_dataframe_and_filter(df, filterFunction)
 
 
+def read_excel_del_repeat(filepath: str, sheetName: str = 'Sheet1', keyCols=None, filterFunction=None):
+    """
+    读取excel表格，结果为字典类型，注意后面的会覆盖前面的
+    :param filepath: 完整的文件路径名
+    :param sheetName: sheet名称
+    :param keyCols: 字典的key的列名
+    :param filterFunction: 过滤的函数
+    """
+    datas = read_excel(filepath, sheetName, filterFunction=filterFunction)
+    return transfer_data_to_dict(datas, keyCols)
+
+
+def read_excel_group_by(filepath: str, sheetName: str = 'Sheet1', keyCols=None, filterFunction=None):
+    """
+    读取excel表格，结果为字典类型，按指定列分组
+    :param filepath: 完整的文件路径名
+    :param sheetName: sheet名称
+    :param keyCols: 字典的key的列名
+    :param filterFunction: 过滤的函数
+    """
+    datas = read_excel(filepath, sheetName, filterFunction=filterFunction)
+    return transfer_data_group_by(datas, keyCols)
+
+
+def create_csv(filename: str, datas, headers=None):
+    """
+    创建csv表格
+    :param filename: 文件名称
+    :param datas: 表格所有数据
+    :param headers: 表格的表头
+    """
+    df = pd.DataFrame(data=datas, columns=headers)
+    filepath = get_destop_path(filename + "_" + get_now_timestamp(TIMESTAMP_DAY_FORMAT) + ".csv")
+    df.to_csv(filepath, index=False)
+    print('创建完成，共%s行，%s' % (filepath, str(len(datas))))
+
+
 def read_csv(filepath: str, filterFunction=None):
     """
     读取csv表格
@@ -130,6 +181,96 @@ def read_csv(filepath: str, filterFunction=None):
     """
     df = pd.read_csv(filepath, low_memory=True)
     return transfer_dataframe_and_filter(df, filterFunction)
+
+
+def read_csv_del_repeat(filepath: str, keyCols=None, filterFunction=None):
+    """
+    读取csv表格，结果为字典类型，注意后面的会覆盖前面的
+    :param filepath: 完整的文件路径名
+    :param keyCols: 字典的key的列名
+    :param filterFunction: 过滤的函数
+    """
+    datas = read_csv(filepath, filterFunction=filterFunction)
+    return transfer_data_to_dict(datas, keyCols)
+
+
+def read_csv_group_by(filepath: str, keyCols=None, filterFunction=None):
+    """
+    读取csv表格，结果为字典类型，按指定列分组
+    :param filepath: 完整的文件路径名
+    :param keyCols: 字典的key的列名
+    :param filterFunction: 过滤的函数
+    """
+    datas = read_excel(filepath, filterFunction=filterFunction)
+    return transfer_data_group_by(datas, keyCols)
+
+
+def create_textfile(filename: str, line_contents):
+    """
+    创建文本文件
+    :param filename: 文件名
+    :param line_contents: 所有行内容
+    """
+    filepath = get_destop_path(filename + "_" + get_now_timestamp(TIMESTAMP_DAY_FORMAT) + ".txt")
+    with open(filepath, 'w') as f:
+        f.write('\n'.join(line_contents))
+    print('创建完成，共%s行，%s' % (filepath, str(len(line_contents))))
+
+
+def read_textfile(filepath: str):
+    """
+    读取文本文件
+    :param filepath: 完整的文件路径名
+    :param filterFunction: 过滤的函数
+    """
+    rows = []
+    with open(filepath, 'r') as f:
+        for line in f:
+            if is_not_empty(line):
+                rows.append(line)
+    print('读取完成，共%s行，%s' % (filepath, str(len(rows))))
+    return rows
+
+
+def read_textfile_as_list(filepath: str, filterFunction=None, sep=','):
+    """
+    读取文本文件
+    :param filepath: 完整的文件路径名
+    :param filterFunction: 过滤的函数
+    """
+    rows = read_textfile(filepath)
+    datas = []
+    headers = rows[0].split(sep)
+    for i in range(1, len(rows)):
+        row_data = rows[i].split(sep)
+        dicts = {}
+        for j in range(len(headers)):
+            dicts[headers[j]] = row_data[j]
+        if filterFunction is None or filterFunction(row_data):
+            datas.append(dicts)
+    return datas
+
+
+def read_textfile_del_repeat(filepath: str, keyCols=None, filterFunction=None, sep=','):
+    """
+    读取文本文件，结果为字典类型，注意后面的会覆盖前面的
+    :param filepath: 完整的文件路径名
+    :param keyCols: 字典的key的列名
+    :param filterFunction: 过滤的函数
+    """
+    datas = read_textfile_as_list(filepath, filterFunction=filterFunction, sep=',')
+    return transfer_data_to_dict(datas, keyCols)
+
+
+def read_textfile_group_by(filepath: str, keyCols=None, filterFunction=None, sep=','):
+    """
+    读取文本文件，结果为字典类型，按指定列分组
+    :param filepath: 完整的文件路径名
+    :param keyCols: 字典的key的列名
+    :param filterFunction: 过滤的函数
+    """
+    datas = read_textfile_as_list(filepath, filterFunction=filterFunction, sep=',')
+    return transfer_data_group_by(datas, keyCols)
 
 
 def transfer_dataframe_and_filter(df: pd.DataFrame, filterFunction=None):
@@ -143,6 +284,24 @@ def transfer_dataframe_and_filter(df: pd.DataFrame, filterFunction=None):
         if filterFunction is None or filterFunction(rowData):
             datas.append(rowData)
     return datas
+
+
+def transfer_data_to_dict(datas, keyCols):
+    dicts = {}
+    for row in datas:
+        key = '_'.join(map(lambda keyColName: row[keyColName], keyCols))
+        dicts[key] = row
+    return dicts
+
+
+def transfer_data_group_by(datas, keyCols):
+    dicts = {}
+    for row in datas:
+        key = '_'.join(map(lambda keyColName: row[keyColName], keyCols))
+        if key in dicts:
+            dicts[key] = dicts[key] + [row]
+        else:
+            dicts[key] = [row]
 
 
 if __name__ == '__main__':
