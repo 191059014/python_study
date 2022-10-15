@@ -182,7 +182,7 @@ def createTextFile(fileName, lineContents, fileType='txt'):
 
 def readTextFileAsList(filePath, filterFunction=None, sep=','):
     """
-    读取文本文件
+    读取文本文件，结果为集合类型，每个元素是字典类型，要求第一行是表头
     :param filePath: 完整的文件路径名
     :param filterFunction: 过滤的函数
     """
@@ -211,7 +211,7 @@ def readTextFileAsList(filePath, filterFunction=None, sep=','):
 
 def readTextFileAsDictDistinct(filePath, keyCols=None, filterFunction=None, sep=','):
     """
-    读取文本文件，结果为字典类型，注意后面的会覆盖前面的
+    读取文本文件，结果为字典类型，注意后面的会覆盖前面的，要求第一行是表头
     :param filePath: 完整的文件路径名
     :param keyCols: 字典的key的列名
     :param filterFunction: 过滤的函数
@@ -222,7 +222,7 @@ def readTextFileAsDictDistinct(filePath, keyCols=None, filterFunction=None, sep=
 
 def readTextFileAsDictGroupby(filePath, keyCols=None, filterFunction=None, sep=','):
     """
-    读取文本文件，结果为字典类型，按指定列分组
+    读取文本文件，结果为字典类型，按指定列分组，要求第一行是表头
     :param filePath: 完整的文件路径名
     :param keyCols: 字典的key的列名
     :param filterFunction: 过滤的函数
