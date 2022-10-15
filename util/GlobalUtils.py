@@ -112,135 +112,87 @@ def crawl_web_page(url, retryTimes=1, encoding=None) -> BeautifulSoup | None:
         return bs4.BeautifulSoup(html, parser='html.parser')
 
 
-def create_excel(filename: str, datas, headers=None):
+def createExcel(fileName, datas, headers=None, fileType='xlsx'):
     """
     创建excel表格
-    :param filename: 文件名称
+    :param fileName: 文件名称
     :param datas: 表格所有数据
     :param headers: 表格的表头
     """
     df = pd.DataFrame(data=datas, columns=headers)
-    filepath = get_destop_path(filename + "_" + get_now_timestamp(TIMESTAMP_DAY_FORMAT) + ".xls")
-    df.to_excel(filepath, index=False)
-    print('创建完成，共%s行，%s' % (filepath, str(len(datas))))
+    filePath = get_destop_path(fileName + "_" + get_now_timestamp(TIMESTAMP_DAY_FORMAT) + "." + fileType)
+    if fileType == 'xlsx' or fileType == 'xls':
+        df.to_excel(filePath, index=False)
+    else:
+        df.to_csv(filePath, index=False)
+    print('创建完成，共%s行，%s' % (str(len(datas)), filePath))
 
 
-def read_excel(filepath: str, sheetName: str = None, filterFunction=None):
+def readExcelAsList(filePath, sheetName='Sheet1', filterFunction=None):
     """
     读取excel表格
-    :param filepath: 完整的文件路径名
+    :param filePath: 完整的文件路径名
     :param sheetName: sheet名称
     :param filterFunction: 过滤的函数
     """
-    df = pd.read_excel(filepath, sheet_name=sheetName)
-    return transfer_dataframe_and_filter(df, filterFunction)
+    if filePath.endswith('xlsx') or filePath.endswith('xls'):
+        df = pd.read_excel(filePath, sheet_name=sheetName, dtype='str')
+    else:
+        df = pd.read_csv(filePath, low_memory=True, dtype='str')
+    datas, total, filter_count = transfer_dataframe_and_filter(df, filterFunction)
+    print('读取完成，共%s行，过滤掉%s行，最终剩下%s行，%s' % (total, filter_count, str(len(datas)), filePath))
+    return datas
 
 
-def read_excel_del_repeat(filepath: str, sheetName: str = 'Sheet1', keyCols=None, filterFunction=None):
+def readExcelAsDictDistinct(filePath, sheetName='Sheet1', keyCols=None, filterFunction=None):
     """
     读取excel表格，结果为字典类型，注意后面的会覆盖前面的
-    :param filepath: 完整的文件路径名
+    :param filePath: 完整的文件路径名
     :param sheetName: sheet名称
     :param keyCols: 字典的key的列名
     :param filterFunction: 过滤的函数
     """
-    datas = read_excel(filepath, sheetName, filterFunction=filterFunction)
-    return transfer_data_to_dict(datas, keyCols)
+    datas = readExcelAsList(filePath, sheetName, filterFunction=filterFunction)
+    return transfer_data_to_dict_distinct(datas, keyCols)
 
 
-def read_excel_group_by(filepath: str, sheetName: str = 'Sheet1', keyCols=None, filterFunction=None):
+def readExcelAsDictGroupby(filePath, sheetName='Sheet1', keyCols=None, filterFunction=None):
     """
     读取excel表格，结果为字典类型，按指定列分组
-    :param filepath: 完整的文件路径名
+    :param filePath: 完整的文件路径名
     :param sheetName: sheet名称
     :param keyCols: 字典的key的列名
     :param filterFunction: 过滤的函数
     """
-    datas = read_excel(filepath, sheetName, filterFunction=filterFunction)
-    return transfer_data_group_by(datas, keyCols)
+    datas = readExcelAsList(filePath, sheetName, filterFunction=filterFunction)
+    return transfer_data_to_dict_groupby(datas, keyCols)
 
 
-def create_csv(filename: str, datas, headers=None):
-    """
-    创建csv表格
-    :param filename: 文件名称
-    :param datas: 表格所有数据
-    :param headers: 表格的表头
-    """
-    df = pd.DataFrame(data=datas, columns=headers)
-    filepath = get_destop_path(filename + "_" + get_now_timestamp(TIMESTAMP_DAY_FORMAT) + ".csv")
-    df.to_csv(filepath, index=False)
-    print('创建完成，共%s行，%s' % (filepath, str(len(datas))))
-
-
-def read_csv(filepath: str, filterFunction=None):
-    """
-    读取csv表格
-    :param filepath: 完整的文件路径名
-    :param filterFunction: 过滤的函数
-    """
-    df = pd.read_csv(filepath, low_memory=True)
-    return transfer_dataframe_and_filter(df, filterFunction)
-
-
-def read_csv_del_repeat(filepath: str, keyCols=None, filterFunction=None):
-    """
-    读取csv表格，结果为字典类型，注意后面的会覆盖前面的
-    :param filepath: 完整的文件路径名
-    :param keyCols: 字典的key的列名
-    :param filterFunction: 过滤的函数
-    """
-    datas = read_csv(filepath, filterFunction=filterFunction)
-    return transfer_data_to_dict(datas, keyCols)
-
-
-def read_csv_group_by(filepath: str, keyCols=None, filterFunction=None):
-    """
-    读取csv表格，结果为字典类型，按指定列分组
-    :param filepath: 完整的文件路径名
-    :param keyCols: 字典的key的列名
-    :param filterFunction: 过滤的函数
-    """
-    datas = read_excel(filepath, filterFunction=filterFunction)
-    return transfer_data_group_by(datas, keyCols)
-
-
-def create_textfile(filename: str, line_contents):
+def createTextFile(fileName, lineContents, fileType='txt'):
     """
     创建文本文件
-    :param filename: 文件名
-    :param line_contents: 所有行内容
+    :param fileName: 文件名
+    :param lineContents: 所有行内容
     """
-    filepath = get_destop_path(filename + "_" + get_now_timestamp(TIMESTAMP_DAY_FORMAT) + ".txt")
-    with open(filepath, 'w') as f:
-        f.write('\n'.join(line_contents))
-    print('创建完成，共%s行，%s' % (filepath, str(len(line_contents))))
+    filePath = get_destop_path(fileName + "_" + get_now_timestamp(TIMESTAMP_DAY_FORMAT) + "." + fileType)
+    with open(filePath, 'w') as f:
+        f.write('\n'.join(lineContents))
+    print('创建完成，共%s行，%s' % (filePath, str(len(lineContents))))
 
 
-def read_textfile(filepath: str):
+def readTextFileAsList(filePath, filterFunction=None, sep=','):
     """
     读取文本文件
-    :param filepath: 完整的文件路径名
+    :param filePath: 完整的文件路径名
     :param filterFunction: 过滤的函数
     """
     rows = []
-    with open(filepath, 'r') as f:
+    with open(filePath, 'r') as f:
         for line in f:
-            if is_not_empty(line):
-                rows.append(line)
-    print('读取完成，共%s行，%s' % (filepath, str(len(rows))))
-    return rows
-
-
-def read_textfile_as_list(filepath: str, filterFunction=None, sep=','):
-    """
-    读取文本文件
-    :param filepath: 完整的文件路径名
-    :param filterFunction: 过滤的函数
-    """
-    rows = read_textfile(filepath)
+            rows.append(line)
     datas = []
     headers = rows[0].split(sep)
+    filter_count = 0
     for i in range(1, len(rows)):
         row_data = rows[i].split(sep)
         dicts = {}
@@ -248,45 +200,51 @@ def read_textfile_as_list(filepath: str, filterFunction=None, sep=','):
             dicts[headers[j]] = row_data[j]
         if filterFunction is None or filterFunction(row_data):
             datas.append(dicts)
+        else:
+            filter_count += 1
+    print('读取完成，共%s行，过滤掉%s行，最终剩下%s行，%s' % (len(rows), filter_count, str(len(datas)), filePath))
     return datas
 
 
-def read_textfile_del_repeat(filepath: str, keyCols=None, filterFunction=None, sep=','):
+def readTextFileAsDictDistinct(filePath, keyCols=None, filterFunction=None, sep=','):
     """
     读取文本文件，结果为字典类型，注意后面的会覆盖前面的
-    :param filepath: 完整的文件路径名
+    :param filePath: 完整的文件路径名
     :param keyCols: 字典的key的列名
     :param filterFunction: 过滤的函数
     """
-    datas = read_textfile_as_list(filepath, filterFunction=filterFunction, sep=',')
-    return transfer_data_to_dict(datas, keyCols)
+    datas = readTextFileAsList(filePath, filterFunction=filterFunction, sep=sep)
+    return transfer_data_to_dict_distinct(datas, keyCols)
 
 
-def read_textfile_group_by(filepath: str, keyCols=None, filterFunction=None, sep=','):
+def readTextFileAsDictGroupby(filePath, keyCols=None, filterFunction=None, sep=','):
     """
     读取文本文件，结果为字典类型，按指定列分组
-    :param filepath: 完整的文件路径名
+    :param filePath: 完整的文件路径名
     :param keyCols: 字典的key的列名
     :param filterFunction: 过滤的函数
     """
-    datas = read_textfile_as_list(filepath, filterFunction=filterFunction, sep=',')
-    return transfer_data_group_by(datas, keyCols)
+    datas = readTextFileAsList(filePath, filterFunction=filterFunction, sep=sep)
+    return transfer_data_to_dict_groupby(datas, keyCols)
 
 
 def transfer_dataframe_and_filter(df: pd.DataFrame, filterFunction=None):
     columns = df.columns
     values = df.values
     datas = []
+    filter_count = 0
     for rowNum in range(len(values)):
         rowData = {}
         for colNum in range(len(columns)):
             rowData[columns[colNum]] = values[rowNum][colNum]
         if filterFunction is None or filterFunction(rowData):
             datas.append(rowData)
-    return datas
+        else:
+            filter_count += 1
+    return datas, len(values), filter_count
 
 
-def transfer_data_to_dict(datas, keyCols):
+def transfer_data_to_dict_distinct(datas, keyCols):
     dicts = {}
     for row in datas:
         key = '_'.join(map(lambda keyColName: row[keyColName], keyCols))
@@ -294,7 +252,7 @@ def transfer_data_to_dict(datas, keyCols):
     return dicts
 
 
-def transfer_data_group_by(datas, keyCols):
+def transfer_data_to_dict_groupby(datas, keyCols):
     dicts = {}
     for row in datas:
         key = '_'.join(map(lambda keyColName: row[keyColName], keyCols))
@@ -302,12 +260,15 @@ def transfer_data_group_by(datas, keyCols):
             dicts[key] = dicts[key] + [row]
         else:
             dicts[key] = [row]
+    return dicts
 
 
 if __name__ == '__main__':
+    # doc = crawl_web_page('https://github.com/nluedtke/linux_kernel_cves/blob/master/data/4.1/4.1_CVEs.txt',
+    #                      retryTimes=3)
     # create_excel('test', [[1, 2], [3, 4]], ['age', 'aaa'])
-    # print(read_excel('C:\\Users\\19105\Desktop\\test_20220904.xls', sheetName='Sheet1',
-    #                  filterFunction=lambda row: row['age'] > 1))
-    doc = crawl_web_page('https://github.com/nluedtke/linux_kernel_cves/blob/master/data/4.1/4.1_CVEs.txt',
-                         retryTimes=3)
-    print(doc)
+    # print(read_excel(get_destop_path('test_20221015.xlsx'), filterFunction=lambda row: row['name'] =='java编程基础'))
+    # print(doc)
+    # data = readExcelAsList(get_destop_path('tb_book.csv'))
+    # print(data)
+    createExcel('ceshi2', [['123', '您好']], headers=['age', '姓名'], fileType='xls')
