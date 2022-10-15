@@ -187,7 +187,7 @@ def readTextFileAsList(filePath, filterFunction=None, sep=','):
     :param filterFunction: 过滤的函数
     """
     rows = []
-    with open(filePath, 'r') as f:
+    with open(filePath, 'r', encoding='utf-8') as f:
         for line in f:
             rows.append(line)
     datas = []
@@ -197,7 +197,10 @@ def readTextFileAsList(filePath, filterFunction=None, sep=','):
         row_data = rows[i].split(sep)
         dicts = {}
         for j in range(len(headers)):
-            dicts[headers[j]] = row_data[j]
+            # 去掉前后空格、换行符、单引号、双引号
+            headerName = headers[j].strip().replace("'", '').replace('"', '')
+            value = row_data[j].strip().replace("'", '').replace('"', '')
+            dicts[headerName] = value
         if filterFunction is None or filterFunction(row_data):
             datas.append(dicts)
         else:
@@ -271,4 +274,7 @@ if __name__ == '__main__':
     # print(doc)
     # data = readExcelAsList(get_destop_path('tb_book.csv'))
     # print(data)
-    createExcel('ceshi2', [['123', '您好']], headers=['age', '姓名'], fileType='xls')
+    # createExcel('ceshi2', [['123', '您好']], headers=['age', '姓名'], fileType='xls')
+    # data = readTextFileAsList(get_destop_path('tb_book.txt'))
+    # print(data)
+    createTextFile('ces', ['123', '哈哈'])
