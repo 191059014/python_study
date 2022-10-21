@@ -69,6 +69,7 @@ def doHttpGet(url, params=None, retryTimes=0, encoding=None):
     :param encoding: 解析网页的编码
     :return 文档对象
     """
+    print('请求中...url=%s' % url)
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.110 Safari/537.36'}
     proxies = [
@@ -106,6 +107,7 @@ def crawlWebPage(url, retryTimes=1, encoding=None) -> BeautifulSoup | None:
     :param encoding: 解析网页的编码
     :return 文档对象
     """
+    print('爬取中...url=%s' % url)
     html = doHttpGet(url, retryTimes=retryTimes, encoding=encoding)
     if html is not None:
         warnings.filterwarnings('ignore', category=GuessedAtParserWarning)
@@ -119,8 +121,9 @@ def createExcel(fileName, datas, headers=None, fileType='xlsx'):
     :param datas: 表格所有数据
     :param headers: 表格的表头
     """
-    df = pd.DataFrame(data=datas, columns=headers)
     filePath = getDestopPath(fileName + "_" + getNowTimestamp(TIMESTAMP_DAY_FORMAT) + "." + fileType)
+    print('准备创建表格...路径=%s' % filePath)
+    df = pd.DataFrame(data=datas, columns=headers)
     if fileType == 'xlsx' or fileType == 'xls':
         df.to_excel(filePath, index=False)
     else:
@@ -135,6 +138,7 @@ def readExcelAsList(filePath, sheetName='Sheet1', filterFunction=None):
     :param sheetName: sheet名称
     :param filterFunction: 过滤的函数
     """
+    print('表格读取中...路径=%s' % filePath)
     if filePath.endswith('xlsx') or filePath.endswith('xls'):
         df = pd.read_excel(filePath, sheet_name=sheetName, dtype='str')
     else:
@@ -194,6 +198,7 @@ def createTextFile(fileName, lineContents, fileType='txt'):
     :param lineContents: 所有行内容
     """
     filePath = getDestopPath(fileName + "_" + getNowTimestamp(TIMESTAMP_DAY_FORMAT) + "." + fileType)
+    print('准备创建文本...路径=%s' % filePath)
     with open(filePath, 'w') as f:
         f.write('\n'.join(lineContents))
     print('创建文本完成，共%s行，%s' % (filePath, str(len(lineContents))))
@@ -205,6 +210,7 @@ def readTextFileAsList(filePath, filterFunction=None, sep=','):
     :param filePath: 完整的文件路径名
     :param filterFunction: 过滤的函数
     """
+    print('文本读取中...路径=%s' % filePath)
     rows = []
     with open(filePath, 'r', encoding='utf-8') as f:
         for line in f:
