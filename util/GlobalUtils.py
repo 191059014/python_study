@@ -24,6 +24,8 @@ def isEmpty(obj):
         return True
     if isinstance(obj, str):
         return len(obj) == 0 or obj.isspace()
+    if isinstance(obj, list) or isinstance(obj, set) or isinstance(obj, dict):
+        return len(obj) == 0
     return False
 
 
@@ -36,7 +38,7 @@ def getDestopPath(filename):
 
 
 def str2Date(date_string: str):
-    return datetime.datetime.strptime(date_string=date_string, format=DEFAULT_DATE_FORMAT)
+    return datetime.datetime.strptime(date_string, DEFAULT_DATE_FORMAT)
 
 
 def date2Str(date_object, format: str = DEFAULT_DATE_FORMAT):
@@ -47,7 +49,7 @@ def getNowTime():
     return datetime.datetime.now()
 
 
-def getNowDateStr(format: str = DEFAULT_DATE_FORMAT):
+def getNowTimeStr(format: str = DEFAULT_DATE_FORMAT):
     return datetime.datetime.now().strftime(format)
 
 
@@ -58,6 +60,24 @@ def getNowTimestamp(format: str = TIMESTAMP_MICROSECONDS_FORMAT):
 def getTimeDiffMs(start_time, end_time):
     subtract_time = end_time - start_time
     return subtract_time.microseconds // 1000
+
+
+def joinUnderline(*vals):
+    return "_".join(vals)
+
+
+def splitList(dataList, size):
+    """
+    将一个大的列表按固定size分割成若干个小列表
+    :param dataList: 列表
+    :param size: 固定长度
+    :return 包含若干个小列表的列表
+    """
+    total = len(dataList)
+    count, mod = divmod(total, size)
+    if mod > 0:
+        count += 1
+    return [dataList[i * size:(i + 1) * size] for i in range(count)]
 
 
 def doHttpGet(url, params=None, retryTimes=0, encoding=None):
@@ -131,67 +151,82 @@ def createExcel(fileName, datas, headers=None, fileType='xlsx'):
     print('创建表格完成，共%s行，%s' % (str(len(datas)), filePath))
 
 
-def readExcelAsList(filePath, sheetName='Sheet1', filterFunction=None):
+def splitListAndCreateExcel(datas, size, fileName):
+    """
+    将一个大的字典列表按固定size分割成若干个小列表，每个表列表生成一个excel
+    :param dataList: 列表
+    :param size: 固定长度
+    :param fileName: 文件名
+    :return excel文件
+    """
+    lists = splitList(datas, size)
+    for i in range(len(lists)):
+        createExcel(joinUnderline(fileName, str(i + 1)), lists[i])
+
+
+def readExcelAsList(filePath, sheetIndex=0, rowFilter=None):
     """
     读取excel表格
     :param filePath: 完整的文件路径名
-    :param sheetName: sheet名称
-    :param filterFunction: 过滤的函数
+    :param sheetIndex: sheet名称或者下标
+    :param rowFilter: 过滤的函数
     """
     print('表格读取中...路径=%s' % filePath)
     if filePath.endswith('xlsx') or filePath.endswith('xls'):
-        df = pd.read_excel(filePath, sheet_name=sheetName, dtype='str')
+        df = pd.read_excel(filePath, sheet_name=sheetIndex, dtype='str')
     else:
         df = pd.read_csv(filePath, low_memory=True, dtype='str')
-    datas, total, filter_count = _transfer_dataframe_and_filter(df, filterFunction)
+    datas, total, filter_count = _transfer_dataframe_and_filter(df, rowFilter)
     print('表格读取完成，共%s行，过滤掉%s行，最终剩下%s行，%s' % (total, filter_count, str(len(datas)), filePath))
     return datas
 
 
-def readExcelAsKvStr(filePath, sheetName='Sheet1', filterFunction=None, keyCols=None, valCols=None):
+def readExcelAsKvStr(filePath, sheetIndex=0, rowFilter=None, keyCols=None, valCols=None):
     """
     读取excel表格，结果为字典类型，key和value都是字符串
     :param filePath: 完整的文件路径名
-    :param sheetName: sheet名称
-    :param filterFunction: 过滤的函数
-    :param keyCols key的列名
-    :param valCols value的列名
+    :param sheetIndex: sheet名称
+    :param rowFilter: 过滤的函数
+    :param keyCols key的列名集合
+    :param valCols value的列名集合
     """
-    lists = readExcelAsList(filePath, sheetName, filterFunction=filterFunction)
-    dicts = _transfer_data_to_kv_str(lists, keyCols, valCols)
-    print('字典容量=%s' % len(dicts))
+    lists = readExcelAsList(filePath, sheetIndex, rowFilter=rowFilter)
+    dicts = transfer_data_to_kv_str(lists, keyCols, valCols)
+    print('readExcelAsKvStr字典容量=%s' % len(dicts))
     return dicts
 
 
-def readExcelAsDictDistinct(filePath, sheetName='Sheet1', keyCols=None, filterFunction=None):
+def readExcelAsDictDistinct(filePath, sheetIndex=0, keyCols=None, valCols=None, rowFilter=None):
     """
     读取excel表格，结果为字典类型，注意后面的会覆盖前面的
     :param filePath: 完整的文件路径名
-    :param sheetName: sheet名称
+    :param sheetIndex: sheet名称
     :param keyCols: 字典的key的列名
-    :param filterFunction: 过滤的函数
+    :param valCols value的列名集合
+    :param rowFilter: 过滤的函数
     """
-    lists = readExcelAsList(filePath, sheetName, filterFunction=filterFunction)
-    dicts = _transfer_data_to_dict_distinct(lists, keyCols)
-    print('字典容量=%s' % len(dicts))
+    lists = readExcelAsList(filePath, sheetIndex, rowFilter=rowFilter)
+    dicts = transfer_data_to_dict_distinct(lists, keyCols, valCols)
+    print('readExcelAsDictDistinct字典容量=%s' % len(dicts))
     return dicts
 
 
-def readExcelAsDictGroupby(filePath, sheetName='Sheet1', keyCols=None, filterFunction=None):
+def readExcelAsDictGroupby(filePath, sheetIndex=0, keyCols=None, valCols=None, rowFilter=None):
     """
     读取excel表格，结果为字典类型，按指定列分组
     :param filePath: 完整的文件路径名
-    :param sheetName: sheet名称
-    :param keyCols: 字典的key的列名
-    :param filterFunction: 过滤的函数
+    :param sheetIndex: sheet名称
+    :param keyCols: 字典的key的列名集合
+    :param valCols value的列名集合
+    :param rowFilter: 过滤的函数
     """
-    lists = readExcelAsList(filePath, sheetName, filterFunction=filterFunction)
-    dicts = _transfer_data_to_dict_groupby(lists, keyCols)
-    print('字典容量=%s' % len(dicts))
+    lists = readExcelAsList(filePath, sheetIndex, rowFilter=rowFilter)
+    dicts = transfer_data_to_dict_groupby(lists, keyCols, valCols)
+    print('readExcelAsDictGroupby字典容量=%s' % len(dicts))
     return dicts
 
 
-def createTextFile(fileName, lineContents, fileType='txt'):
+def createTextFile(fileName, lineContents, fileType='sql'):
     """
     创建文本文件
     :param fileName: 文件名
@@ -204,11 +239,11 @@ def createTextFile(fileName, lineContents, fileType='txt'):
     print('创建文本完成，共%s行，%s' % (filePath, str(len(lineContents))))
 
 
-def readTextFileAsList(filePath, filterFunction=None, sep=','):
+def readTextFileAsList(filePath, rowFilter=None, sep=','):
     """
     读取文本文件，结果为集合类型，每个元素是字典类型，要求第一行是表头
     :param filePath: 完整的文件路径名
-    :param filterFunction: 过滤的函数
+    :param rowFilter: 过滤的函数
     """
     print('文本读取中...路径=%s' % filePath)
     rows = []
@@ -226,7 +261,7 @@ def readTextFileAsList(filePath, filterFunction=None, sep=','):
             headerName = headers[j].strip().replace("'", '').replace('"', '')
             value = row_data[j].strip().replace("'", '').replace('"', '')
             dicts[headerName] = value
-        if filterFunction is None or filterFunction(row_data):
+        if rowFilter is None or rowFilter(row_data):
             lists.append(dicts)
         else:
             filter_count += 1
@@ -234,74 +269,78 @@ def readTextFileAsList(filePath, filterFunction=None, sep=','):
     return lists
 
 
-def readTextFileAsKvStr(filePath, filterFunction=None, keyCols=None, valCols=None):
+def readTextFileAsKvStr(filePath, keyCols=None, valCols=None, rowFilter=None):
     """
     读取文本文件，结果为字典类型，key和value都是字符串
     :param filePath: 完整的文件路径名
-    :param filterFunction: 过滤的函数
-    :param keyCols key的列名
-    :param valCols value的列名
+    :param rowFilter: 过滤的函数
+    :param keyCols key的列名集合
+    :param valCols value的列名集合
     """
-    lists = readTextFileAsList(filePath, filterFunction=filterFunction)
-    dicts = _transfer_data_to_kv_str(lists, keyCols, valCols)
-    print('字典容量=%s' % len(dicts))
+    lists = readTextFileAsList(filePath, rowFilter=rowFilter)
+    dicts = transfer_data_to_kv_str(lists, keyCols, valCols)
+    print('readTextFileAsKvStr字典容量=%s' % len(dicts))
     return dicts
 
 
-def readTextFileAsDictDistinct(filePath, keyCols=None, filterFunction=None, sep=','):
+def readTextFileAsDictDistinct(filePath, keyCols=None, valCols=None, rowFilter=None, sep=','):
     """
     读取文本文件，结果为字典类型，注意后面的会覆盖前面的，要求第一行是表头
     :param filePath: 完整的文件路径名
     :param keyCols: 字典的key的列名
-    :param filterFunction: 过滤的函数
+    :param valCols value的列名集合
+    :param rowFilter: 过滤的函数
+    :param sep 若为文本，则按sep切割
     """
-    datas = readTextFileAsList(filePath, filterFunction=filterFunction, sep=sep)
-    dicts = _transfer_data_to_dict_distinct(datas, keyCols)
-    print('字典容量=%s' % len(dicts))
+    datas = readTextFileAsList(filePath, rowFilter=rowFilter, sep=sep)
+    dicts = transfer_data_to_dict_distinct(datas, keyCols, valCols)
+    print('readTextFileAsDictDistinct字典容量=%s' % len(dicts))
     return dicts
 
 
-def readTextFileAsDictGroupby(filePath, keyCols=None, filterFunction=None, sep=','):
+def readTextFileAsDictGroupby(filePath, keyCols=None, valCols=None, rowFilter=None, sep=','):
     """
     读取文本文件，结果为字典类型，按指定列分组，要求第一行是表头
     :param filePath: 完整的文件路径名
     :param keyCols: 字典的key的列名
-    :param filterFunction: 过滤的函数
+    :param valCols value的列名集合
+    :param rowFilter: 过滤的函数
+    :param sep 若为文本，则按sep切割
     """
-    datas = readTextFileAsList(filePath, filterFunction=filterFunction, sep=sep)
-    dicts = _transfer_data_to_dict_groupby(datas, keyCols)
-    print('字典容量=%s' % len(dicts))
+    datas = readTextFileAsList(filePath, rowFilter=rowFilter, sep=sep)
+    dicts = transfer_data_to_dict_groupby(datas, keyCols, valCols)
+    print('readTextFileAsDictGroupby字典容量=%s' % len(dicts))
     return dicts
 
 
-def generateBatchStr(str_template, lists):
+def formatStrBatch(str_template, lists):
     """
     通过文件批量生成字符串
     :param str_template: 带占位符的字符串
     :param lists: 元素为字典类型的列表
     """
     str_list = list(map(lambda row: str_template.format(**row), lists))
-    print('列表容量=%s' % len(str_list))
+    print('formatStrBatch列表容量=%s' % len(str_list))
     return str_list
 
 
-def generateBatchStrFromFile(str_template, filePath, sheetName='Sheet1', filterFunction=None, sep=','):
+def formatStrBatchFromFile(str_template, filePath, sheetIndex=0, rowFilter=None, sep=','):
     """
     通过文件批量生成字符串
     :param str_template: 带占位符的字符串
     :param filePath: 完整的文件路径名
-    :param sheetName: sheet名称
-    :param filterFunction: 过滤的函数
+    :param sheetIndex: sheet名称
+    :param rowFilter: 过滤的函数
     :param sep: 文本内容的分隔符
     """
     if filePath.endswith('.xlsx') or filePath.endswith('.xls') or filePath.endswith('.csv'):
-        lists = readExcelAsList(filePath, sheetName, filterFunction)
+        lists = readExcelAsList(filePath, sheetIndex, rowFilter)
     else:
-        lists = readTextFileAsList(filePath, sep, filterFunction)
-    return generateBatchStr(str_template, lists)
+        lists = readTextFileAsList(filePath, sep, rowFilter)
+    return formatStrBatch(str_template, lists)
 
 
-def _transfer_dataframe_and_filter(df: pd.DataFrame, filterFunction=None):
+def _transfer_dataframe_and_filter(df: pd.DataFrame, rowFilter=None):
     columns = df.columns
     values = df.values
     datas = []
@@ -312,38 +351,46 @@ def _transfer_dataframe_and_filter(df: pd.DataFrame, filterFunction=None):
             val = values[rowNum][colNum]
             val = '' if isEmpty(val) else val
             rowData[columns[colNum]] = val
-        if filterFunction is None or filterFunction(rowData):
+        if rowFilter is None or rowFilter(rowData):
             datas.append(rowData)
         else:
             filter_count += 1
     return datas, len(values), filter_count
 
 
-def _transfer_data_to_kv_str(datas, keyCols, valCols):
+def transfer_data_to_kv_str(datas, keyCols, valCols):
     dicts = {}
     for row in datas:
-        key = '_'.join(map(lambda keyColName: row[keyColName], keyCols))
-        value = '_'.join(map(lambda valColName: row[valColName], valCols))
+        key = joinUnderline(map(lambda keyColName: row[keyColName], keyCols))
+        value = joinUnderline(map(lambda valColName: row[valColName], valCols))
         dicts[key] = value
     return dicts
 
 
-def _transfer_data_to_dict_distinct(datas, keyCols):
+def transfer_data_to_dict_distinct(datas, keyCols, valCols):
     dicts = {}
     for row in datas:
-        key = '_'.join(map(lambda keyColName: row[keyColName], keyCols))
-        dicts[key] = row
+        key = joinUnderline(map(lambda keyColName: row[keyColName], keyCols))
+        if valCols is None:
+            dicts[key] = row
+        else:
+            val = joinUnderline(map(lambda valColName: row[valColName], valCols))
+            dicts[key] = val
     return dicts
 
 
-def _transfer_data_to_dict_groupby(datas, keyCols):
+def transfer_data_to_dict_groupby(datas, keyCols, valCols):
     dicts = {}
     for row in datas:
-        key = '_'.join(map(lambda keyColName: row[keyColName], keyCols))
-        if key in dicts:
-            dicts[key] = dicts[key] + [row]
+        key = joinUnderline(map(lambda keyColName: row[keyColName], keyCols))
+        if valCols is None:
+            val = {row, }
         else:
-            dicts[key] = [row]
+            val = {joinUnderline(map(lambda valColName: row[valColName], valCols)), }
+        if key in dicts:
+            dicts[key].update(val)
+        else:
+            dicts[key] = val
     return dicts
 
 
@@ -351,15 +398,17 @@ if __name__ == '__main__':
     # doc = crawl_web_page('https://github.com/nluedtke/linux_kernel_cves/blob/master/data/4.1/4.1_CVEs.txt',
     #                      retryTimes=3)
     # create_excel('test', [[1, 2], [3, 4]], ['age', 'aaa'])
-    # print(read_excel(get_destop_path('test_20221015.xlsx'), filterFunction=lambda row: row['name'] =='java编程基础'))
+    # print(read_excel(get_destop_path('test_20221015.xlsx'), rowFilter=lambda row: row['name'] =='java编程基础'))
     # print(doc)
     # data = readExcelAsList(get_destop_path('tb_book.csv'))
     # print(data)
     # createExcel('ceshi2', [['123', '您好']], headers=['age', '姓名'], fileType='xls')
-    data = readTextFileAsList(getDestopPath('tb_book.txt'))
+    # data = readTextFileAsList(getDestopPath('tb_book.txt'))
     # print(data)
     # createTextFile('ces', ['123', '哈哈'])
     # print(readExcelAsKvStr(getDestopPath('tb_book.csv'), keyCols=['id'], valCols=['name']))
     # print(generateBatchStr('select {name} from dual',[{'name':'zhangsan'},{'name':'lisi'}]))
     # print(generateBatchStr('select {name} from dual', [{'name': 'zhangsan'}, {'name': 'lisi'}]))
-    print(generateBatchStrFromFile('select {name} from dual', getDestopPath('tb_book.csv')))
+    # print(readExcelAsKvStr(getDestopPath('test_20221015.xlsx')))
+    datas = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+    print(splitList(datas, 10))
