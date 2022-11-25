@@ -1,4 +1,5 @@
 import datetime
+import os
 import random
 import warnings
 
@@ -34,7 +35,11 @@ def isNotEmpty(obj):
 
 
 def getDestopPath(filename):
-    return 'C:\\Users\\19105\\Desktop\\' + filename
+    return os.path.join(os.path.expanduser("~"), 'Desktop') + '\\' + filename
+
+
+def getDownloadPath(filename):
+    return os.path.join(os.path.expanduser("~"), 'Downloads') + '\\' + filename
 
 
 def str2Date(date_string: str):
@@ -361,8 +366,8 @@ def _transfer_dataframe_and_filter(df: pd.DataFrame, rowFilter=None):
 def transfer_data_to_kv_str(datas, keyCols, valCols):
     dicts = {}
     for row in datas:
-        key = joinUnderline(map(lambda keyColName: row[keyColName], keyCols))
-        value = joinUnderline(map(lambda valColName: row[valColName], valCols))
+        key = joinUnderline(*map(lambda keyColName: row[keyColName], keyCols))
+        value = joinUnderline(*map(lambda valColName: row[valColName], valCols))
         dicts[key] = value
     return dicts
 
@@ -370,11 +375,11 @@ def transfer_data_to_kv_str(datas, keyCols, valCols):
 def transfer_data_to_dict_distinct(datas, keyCols, valCols):
     dicts = {}
     for row in datas:
-        key = joinUnderline(map(lambda keyColName: row[keyColName], keyCols))
+        key = joinUnderline(*map(lambda keyColName: row[keyColName], keyCols))
         if valCols is None:
             dicts[key] = row
         else:
-            val = joinUnderline(map(lambda valColName: row[valColName], valCols))
+            val = joinUnderline(*map(lambda valColName: row[valColName], valCols))
             dicts[key] = val
     return dicts
 
@@ -382,11 +387,11 @@ def transfer_data_to_dict_distinct(datas, keyCols, valCols):
 def transfer_data_to_dict_groupby(datas, keyCols, valCols):
     dicts = {}
     for row in datas:
-        key = joinUnderline(map(lambda keyColName: row[keyColName], keyCols))
+        key = joinUnderline(*map(lambda keyColName: row[keyColName], keyCols))
         if valCols is None:
             val = {row, }
         else:
-            val = {joinUnderline(map(lambda valColName: row[valColName], valCols)), }
+            val = {joinUnderline(*map(lambda valColName: row[valColName], valCols)), }
         if key in dicts:
             dicts[key].update(val)
         else:
@@ -409,6 +414,10 @@ if __name__ == '__main__':
     # print(readExcelAsKvStr(getDestopPath('tb_book.csv'), keyCols=['id'], valCols=['name']))
     # print(generateBatchStr('select {name} from dual',[{'name':'zhangsan'},{'name':'lisi'}]))
     # print(generateBatchStr('select {name} from dual', [{'name': 'zhangsan'}, {'name': 'lisi'}]))
-    # print(readExcelAsKvStr(getDestopPath('test_20221015.xlsx')))
-    datas = [1, 2, 3, 4, 5, 6, 7, 8, 9]
-    print(splitList(datas, 10))
+    # print(readExcelAsKvStr(getDestopPath('test_20221015.xlsx'),keyCols=['name'],valCols=['id']))
+    # datas = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+    # print(splitList(datas, 10))
+    print(os.path.join(os.path.expanduser("~"), 'Desktop'))
+    listdir = os.listdir(os.path.join(os.path.expanduser("~"), 'Desktop'))
+    print(listdir)
+    print(os.path.join(os.path.expanduser("~"), 'Downloads'))
