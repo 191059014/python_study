@@ -1,12 +1,10 @@
 import datetime
 import os
 import random
-import warnings
 
-import bs4
 import pandas as pd
 import requests
-from bs4 import BeautifulSoup, GuessedAtParserWarning
+from lxml import etree
 
 # 默认时间格式
 DEFAULT_DATE_FORMAT = '%Y-%m-%d %H:%M:%S'
@@ -124,7 +122,7 @@ def doHttpGet(url, params=None, retryTimes=0, encoding=None):
     return response_body
 
 
-def crawlWebPage(url, retryTimes=1, encoding=None) -> BeautifulSoup | None:
+def crawlWebPage(url, retryTimes=1, encoding=None) -> etree._Element | None:
     """
     爬取网页
     :param url: 网页url
@@ -135,8 +133,7 @@ def crawlWebPage(url, retryTimes=1, encoding=None) -> BeautifulSoup | None:
     print('爬取中...url=%s' % url)
     html = doHttpGet(url, retryTimes=retryTimes, encoding=encoding)
     if html is not None:
-        warnings.filterwarnings('ignore', category=GuessedAtParserWarning)
-        return bs4.BeautifulSoup(html, parser='html.parser')
+        return etree.HTML(html)
 
 
 def createExcel(fileName, datas, headers=None, fileType='xlsx'):
