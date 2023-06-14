@@ -276,7 +276,12 @@ class TextUtils():
         print('创建文本完成，共%s行，路径=%s' % (filePath, str(len(lineContents))))
 
     @staticmethod
-    def read(filePath) -> list:
+    def read(filePath) -> str:
+        with open(filePath, 'r', encoding='utf-8') as f:
+            return f.read()
+
+    @staticmethod
+    def readAsList(filePath) -> list:
         """
         读取文本文件
         :param filePath: 文件完整路径名
@@ -331,5 +336,5 @@ def formatStrBatch(str_template, lists):
 if __name__ == '__main__':
     # print(ExcelUtils.readAsDictGroupby(getDestopPath('次新股_20230609.xlsx'), keyCols=['名称', '代码']))
     db = DB()
-    rownumber = db.execute("update t_user set password='123456' where id>1")
+    rownumber = db.execute("update t_user set password='1234567' where id>1")
     print(rownumber)
