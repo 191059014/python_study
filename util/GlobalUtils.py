@@ -307,7 +307,7 @@ class ExcelUtils():
         :param fileName: 文件名
         :return excel文件
         """
-        lists = splitList(datas, size)
+        lists = ListUtils.split(datas, size)
         for i in range(len(lists)):
             ExcelUtils.create(StrUtils.joinUnderline(fileName, str(i + 1)), lists[i])
 
