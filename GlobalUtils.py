@@ -131,8 +131,8 @@ class DB():
 
     def __init__(self, env='local') -> None:
         env_maps = {
-            "local": ['127.0.0.1', 3306, 'test', 'root', 'root3306'],
-            "dev": ['127.0.0.1', 3306, 'dev', 'root', 'root3306']
+            "dev": ['127.0.0.1', 3306, 'dev', 'root', 'root3306'],
+            "sit": ['127.0.0.1', 3306, 'sit', 'root', 'root3306']
         }
         conf = env_maps.get(env)
         if not conf:
@@ -172,34 +172,52 @@ class DB():
             self._db_conn.close()
             print('%s数据库连接已关闭' % self._env)
 
+    class MigrateTask():
+
+        def __init__(self, tableName, condition='1=1', excludeColumns=[]) -> None:
+            self.tableName = tableName
+            self.condition = condition
+            self.excludeColumns = excludeColumns
+
     @staticmethod
-    def migrate(originEnv, targetEnv, tableName, condition='1=1', excludeColumns=[]):
+    def migrate(originEnv, targetEnv, migrateTasks):
         start = datetime.datetime.now()
-        # 获取待迁移的数据
         originDb = DB(originEnv)
-        originQuerySql = 'select * from %s where %s' % (tableName, condition)
-        originCursor = originDb._db_conn.cursor(cursor=pymysql.cursors.DictCursor)
-        originCursor.execute(originQuerySql)
-        originRowDatas = originCursor.fetchall()
-        # 遍历所有行，一行一行插入
         targetDb = DB(targetEnv)
         try:
-            for originRowData in originRowDatas:
-                # 过滤掉值为空以及制定排除的列
-                effectColumns = tuple(
-                    filter(lambda item: item[1] is not None and item[0] not in excludeColumns, originRowData.items()))
-                # 列名前后加反引号
-                columns = [StrUtils.wrap(k, '`') for k, v in effectColumns]
-                # 非数字类型的加单引号
-                values = [str(v) if isinstance(v, (int, float)) else StrUtils.wrap(v, "'") for k, v in effectColumns]
-                # 组装插入语句
-                targetInsertSql = 'insert into %s (%s) values (%s)' % (tableName, ','.join(columns), ','.join(values))
-                print(targetInsertSql)
-                targetDb.execute(targetInsertSql, auto_commit=False)
+            result = {}
+            for task in migrateTasks:
+                tableName = task.tableName
+                condition = task.condition
+                excludeColumns = task.excludeColumns
+                print("==========表名：%s，条件：%s，排除的列：%s" % (tableName, condition, excludeColumns))
+                # 获取待迁移的数据
+                originQuerySql = 'select * from %s where %s' % (tableName, condition)
+                originCursor = originDb._db_conn.cursor(cursor=pymysql.cursors.DictCursor)
+                originCursor.execute(originQuerySql)
+                originRowDatas = originCursor.fetchall()
+                # 遍历所有行，一行一行插入
+                for originRowData in originRowDatas:
+                    # 过滤掉值为空以及制定排除的列
+                    effectColumns = tuple(
+                        filter(lambda item: item[1] is not None and item[0] not in excludeColumns,
+                               originRowData.items()))
+                    # 列名前后加反引号
+                    columns = [StrUtils.wrap(k, '`') for k, v in effectColumns]
+                    # 非数字类型的加单引号
+                    values = [str(v) if isinstance(v, (int, float)) else StrUtils.wrap(v, "'") for k, v in
+                              effectColumns]
+                    # 组装插入语句
+                    targetInsertSql = 'insert into %s (%s) values (%s)' % (
+                        tableName, ','.join(columns), ','.join(values))
+                    print(targetInsertSql)
+                    targetDb.execute(targetInsertSql, auto_commit=False)
+                result[tableName] = len(originRowDatas)
+            # 所有迁移任务完成，一起提交事务
             targetDb.commit()
             end = datetime.datetime.now()
             cost = DateUtils.getTimeDiffMs(start, end)
-            print('数据迁移完成，%s->%s，总共%s行，总共耗时：%s秒' % (originEnv, targetEnv, len(originRowDatas), cost))
+            print('==========数据迁移完成，%s->%s，总共耗时：%s秒，结果=%s' % (originEnv, targetEnv, cost, result))
         except Exception as e:
             targetDb.rollback(e)
 
@@ -385,4 +403,5 @@ if __name__ == '__main__':
     # db = DB()
     # rownumber = db.execute("update t_user set password='1234567' where id>1")
     # print(rownumber)
-    DB.migrate('local', 'dev', 't_user', excludeColumns=['password'])
+    # DB.migrate('local', 'dev', 't_user', excludeColumns=['password'])
+    pass
