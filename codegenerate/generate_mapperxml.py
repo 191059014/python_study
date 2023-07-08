@@ -43,7 +43,8 @@ def _create_if_sql(dicts, column):
 def generate_resultMap(dicts):
     lists = ['']
     lists.append(INDENT + '<!--字段映射-->')
-    lists.append(INDENT + '<resultMap id="%sMap" type="%sDO">' % (dicts[LOWER_CLASS_NAME], dicts[UPPER_CLASS_NAME]))
+    lists.append(INDENT + '<resultMap id="%sMap" type="%s.%sDO">' % (
+        dicts[LOWER_CLASS_NAME], dicts[PACKAGE], dicts[UPPER_CLASS_NAME]))
     id_column = filter_id_column(dicts[COLUMN_LIST])
     lists.append(INDENT2 + '<id column="%s" property="%s"/>' % (id_column[COLUMN_NAME], id_column[LOWER_PROPERTY_NAME]))
     not_id_columns = filter_not_id_column(dicts[COLUMN_LIST])
@@ -158,20 +159,6 @@ def generate_updateById(dicts):
     return lists
 
 
-def generate_deleteById(dicts):
-    lists = ['']
-    lists.append(INDENT + '<!--通过id逻辑删除-->')
-    lists.append(INDENT + '<update id="deleteById">')
-    lists.append(INDENT2 + 'update %s %s' % (dicts[TABLE_NAME], _create_table_alias(dicts)))
-    lists.append(INDENT2 + 'set %s' % _create_logic_invalid(dicts))
-    id_column = filter_id_column(dicts[COLUMN_LIST])
-    lists.append(INDENT2 + 'where %s = %s and %s' % (
-        _create_column_prefix(dicts) + id_column[COLUMN_NAME], _create_getPropertyValue_sql(dicts, id_column),
-        _create_logic_valid(dicts)))
-    lists.append(INDENT + '</update>')
-    return lists
-
-
 def generate_deleteByIds(dicts):
     lists = ['']
     lists.append(INDENT + '<!--通过id集合逻辑删除-->')
@@ -186,21 +173,6 @@ def generate_deleteByIds(dicts):
     lists.append(INDENT3 + '#{%s}' % id_column[COLUMN_NAME])
     lists.append(INDENT2 + '</foreach>')
     lists.append(INDENT + '</update>')
-    return lists
-
-
-def generate_selectById(dicts):
-    lists = ['']
-    lists.append(INDENT + '<!--根据id查询-->')
-    lists.append(INDENT + '<select id="selectById" resultMap="%sMap">' % dicts[LOWER_CLASS_NAME])
-    lists.append(INDENT2 + 'select')
-    lists.append(INDENT2 + '<include refid="allFieldsWithPrefix"/>')
-    lists.append(INDENT2 + 'from %s %s' % (dicts[TABLE_NAME], _create_table_alias(dicts)))
-    id_column = filter_id_column(dicts[COLUMN_LIST])
-    lists.append(INDENT2 + 'where %s%s = %s and %s' % (
-        _create_column_prefix(dicts), id_column[COLUMN_NAME], _create_getPropertyValue_sql(dicts, id_column),
-        _create_logic_valid(dicts)))
-    lists.append(INDENT + '</select>')
     return lists
 
 
@@ -265,7 +237,7 @@ def create_mapper_xml(dicts):
     lists.append('<?xml version="1.0" encoding="UTF-8"?>')
     lists.append(
         '<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">')
-    lists.append('<mapper namespace="${package}.I%sMapper">' % dicts[UPPER_CLASS_NAME])
+    lists.append('<mapper namespace="%s.I%sMapper">' % (dicts[PACKAGE], dicts[UPPER_CLASS_NAME]))
     lists.extend(generate_resultMap(dicts))
     lists.extend(generate_allFields(dicts))
     lists.extend(generate_allFieldsWithPrefix(dicts))
@@ -275,9 +247,7 @@ def create_mapper_xml(dicts):
     lists.extend(generate_insert(dicts))
     lists.extend(generate_insertBatch(dicts))
     lists.extend(generate_updateById(dicts))
-    lists.extend(generate_deleteById(dicts))
     lists.extend(generate_deleteByIds(dicts))
-    lists.extend(generate_selectById(dicts))
     lists.extend(generate_selectByIds(dicts))
     lists.extend(generate_selectList(dicts))
     lists.extend(generate_selectCount(dicts))

@@ -1,20 +1,31 @@
 import re
 from enum import Enum
 
+# 表信息常量
 TABLE_NAME = 'tableName'
+TABLE_COMMENT = 'table_comment'
+# 列信息常量
 COLUMN_LIST = 'columnList'
 COLUMN_NAME = 'columnName'
 LOWER_PROPERTY_NAME = 'lowerPropertyName'
 UPPER_PROPERTY_NAME = 'upperPropertyName'
+PROPERTY_DATA_TYPE = 'propertyDataType'
+COLUMN_COMMENT = 'column_comment'
 IS_PK = "isPk"
+# 类信息常量
 UPPER_CLASS_NAME = 'upperClassName'
 LOWER_CLASS_NAME = 'lowerClassName'
+# 其他常量
+AUTHOR = 'author'
+NOW_TIME = 'now_time'
+PACKAGE = 'package'
+# 缩进
 INDENT = '    '
 INDENT2 = INDENT * 2
 INDENT3 = INDENT * 3
 INDENT4 = INDENT * 4
+# 生成文件的根路径
 GENERATE_FILE_PATH = 'generateFilePath'
-PROPERTY_DATA_TYPE = 'propertyDataType'
 
 
 # 数据类型映射关系枚举
@@ -27,6 +38,14 @@ class DATA_TYPE_MAP(Enum):
     Double = ['double'],
     BigDecimal = ['decimal'],
     Boolean = ['bit']
+
+
+# 通过数据库类型获取Java字段类型
+def getPropertyDataType(dbDataType):
+    for d in DATA_TYPE_MAP:
+        if dbDataType in d.value[0]:
+            return d.name
+    raise RuntimeError('匹配不到对应的Java数据类型：' + dbDataType)
 
 
 # 下划线转驼峰
@@ -50,4 +69,4 @@ def filter_not_id_column(column_list):
 
 
 if __name__ == '__main__':
-    print(DATA_TYPE_MAP.Integer.name)
+    print(getPropertyDataType('bigint'))
