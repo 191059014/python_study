@@ -105,7 +105,7 @@ def generate_selectPages(dicts):
     lists.append(INDENT + ' * @return 结果列表')
     lists.append(INDENT + ' */')
     lists.append(
-        INDENT + 'List<%sDO> selectPages(@Param("%s") %sDO %s, @Param("startIndex") int startIndex, @Param("pageSize") int pageSize);' % (
+        INDENT + 'List<%sDO> selectPages(@Param("%s") %sDO %s, @Param("pageParameter") PageParameter pageParameter);' % (
             dicts[UPPER_CLASS_NAME], dicts[LOWER_CLASS_NAME], dicts[UPPER_CLASS_NAME],
             dicts[LOWER_CLASS_NAME]))
     return lists
@@ -119,12 +119,15 @@ def create_mapper_class(dicts):
     lists.append('import java.util.Set;')
     lists.append('')
     lists.append('import org.apache.ibatis.annotations.Param;')
+    lists.append('import com.hb.unic.base.web.PageParameter')
+    lists.append('import org.apache.ibatis.annotations.Mapper;')
     lists.append('')
     lists.append('/**')
     lists.append(' * %s数据库交互层' % dicts[TABLE_COMMENT])
     lists.append(' *')
     lists.append(' * @version v0.1, %s, create by %s.' % (dicts[NOW_TIME], dicts[AUTHOR]))
     lists.append(' */')
+    lists.append('@Mapper')
     lists.append('public interface I%sMapper {' % dicts[UPPER_CLASS_NAME])
     lists.extend(generate_insert(dicts))
     lists.extend(generate_insertBatch(dicts))

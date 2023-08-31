@@ -159,13 +159,19 @@ def generate_selectPages(dicts):
     lists.append(INDENT + ' * 分页条件查询')
     lists.append(INDENT + ' *')
     lists.append(INDENT + ' * @param %s 查询条件' % dicts[LOWER_CLASS_NAME])
+    lists.append(INDENT + ' * @param pageParameter 分页参数')
     lists.append(INDENT + ' * @return 结果列表')
     lists.append(INDENT + ' */')
     lists.append(INDENT + '@Override')
     lists.append(
-        INDENT + 'public Page<%sDO> selectPages(%sDO %s, int startIndex, int pageSize) {' % (
+        INDENT + 'public PageResult<%sDO> selectPages(%sDO %s, PageParameter pageParameter) {' % (
             dicts[UPPER_CLASS_NAME], dicts[UPPER_CLASS_NAME], dicts[LOWER_CLASS_NAME]))
-    lists.append(INDENT2 + 'return null;')
+    lists.append(
+        INDENT2 + 'long total = %sMapper.selectCount(%s);' % (dicts[LOWER_CLASS_NAME], dicts[LOWER_CLASS_NAME]))
+    lists.append(
+        INDENT2 + 'List<%sDO> %sList = %sMapper.selectPages(%s, pageParameter);' % (
+            dicts[UPPER_CLASS_NAME], dicts[LOWER_CLASS_NAME], dicts[LOWER_CLASS_NAME], dicts[LOWER_CLASS_NAME]))
+    lists.append(INDENT2 + 'return new PageResult<>(%sList, total);' % dicts[LOWER_CLASS_NAME])
     lists.append(INDENT + '}')
     return lists
 
@@ -179,13 +185,26 @@ def create_serviceimpl_class(dicts):
     lists.append('import java.util.HashSet;')
     lists.append('import org.springframework.util.CollectionUtils;')
     lists.append('import javax.annotation.Resource;')
-    lists.append('import com.hb.unic.common.standard.Page;')
+    lists.append('import org.springframework.stereotype.Service;')
+    lists.append('import com.hb.unic.base.web.PageResult;')
+    lists.append('import com.hb.unic.base.web.PageParameter;')
+    lists.append('import com.hb.unic.base.log.UnicLogger;')
+    lists.append('import com.hb.unic.base.log.UnicLoggerFactory;')
     lists.append('/**')
     lists.append(' * %s服务层' % dicts[TABLE_COMMENT])
     lists.append(' *')
     lists.append(' * @version v0.1, %s, create by %s.' % (dicts[NOW_TIME], dicts[AUTHOR]))
     lists.append(' */')
-    lists.append('public class %sServiceImpl implements IUserDetailService {' % dicts[UPPER_CLASS_NAME])
+    lists.append('@Service')
+    lists.append(
+        'public class %sServiceImpl implements I%sService {' % (dicts[UPPER_CLASS_NAME], dicts[UPPER_CLASS_NAME]))
+    lists.append('')
+    lists.append(INDENT + '/**')
+    lists.append(INDENT + ' * log')
+    lists.append(INDENT + ' */')
+    lists.append(
+        INDENT + 'private static final UnicLogger LOGGER = UnicLoggerFactory.getLogger(%sServiceImpl.class);' % (
+            dicts[UPPER_CLASS_NAME]))
     lists.append('')
     lists.append(INDENT + '/**')
     lists.append(INDENT + ' * %s数据库交互层' % dicts[TABLE_COMMENT])

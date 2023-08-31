@@ -51,4 +51,4 @@ def create_code_file(dbEnv, tableName, upperClassName, package, savePath):
 
 
 if __name__ == '__main__':
-    create_code_file('dev', 't_user_detail', 'UserDetail', 'com.hb.test.db.codegenerate', '../temp/')
+    create_code_file('dev', 'sys_audit_log', 'AuditLog', 'com.hb.test.db.codegenerate', '../temp/')

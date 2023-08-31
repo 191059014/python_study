@@ -11,8 +11,10 @@ def generate_insert(dicts):
     lists.append(INDENT + ' */')
     lists.append(INDENT + '@PostMapping("/insert")')
     lists.append(
-        INDENT + 'public int insert(@RequestBody %sDO %s) {' % (dicts[UPPER_CLASS_NAME], dicts[LOWER_CLASS_NAME]))
-    lists.append(INDENT2 + 'return %sService.insert(%s);' % (dicts[LOWER_CLASS_NAME], dicts[LOWER_CLASS_NAME]))
+        INDENT + 'public Result<Integer> insert(@RequestBody %sDO %s) {' % (
+            dicts[UPPER_CLASS_NAME], dicts[LOWER_CLASS_NAME]))
+    lists.append(
+        INDENT2 + 'return Result.success(%sService.insert(%s));' % (dicts[LOWER_CLASS_NAME], dicts[LOWER_CLASS_NAME]))
     lists.append(INDENT + '}')
     return lists
 
@@ -27,8 +29,10 @@ def generate_updateById(dicts):
     lists.append(INDENT + ' */')
     lists.append(INDENT + '@PostMapping("/updateById")')
     lists.append(
-        INDENT + 'public int updateById(@RequestBody %sDO %s) {' % (dicts[UPPER_CLASS_NAME], dicts[LOWER_CLASS_NAME]))
-    lists.append(INDENT2 + 'return %sService.updateById(%s);' % (dicts[LOWER_CLASS_NAME], dicts[LOWER_CLASS_NAME]))
+        INDENT + 'public Result<Integer> updateById(@RequestBody %sDO %s) {' % (
+            dicts[UPPER_CLASS_NAME], dicts[LOWER_CLASS_NAME]))
+    lists.append(INDENT2 + 'return Result.success(%sService.updateById(%s));' % (
+        dicts[LOWER_CLASS_NAME], dicts[LOWER_CLASS_NAME]))
     lists.append(INDENT + '}')
     return lists
 
@@ -44,10 +48,11 @@ def generate_deleteById(dicts):
     lists.append(INDENT + ' */')
     lists.append(INDENT + '@GetMapping("/deleteById")')
     lists.append(
-        INDENT + 'public int deleteById(@RequestParam("%s") %s %s) {' % (
+        INDENT + 'public Result<Integer> deleteById(@RequestParam("%s") %s %s) {' % (
             id_column[LOWER_PROPERTY_NAME], id_column[PROPERTY_DATA_TYPE], id_column[LOWER_PROPERTY_NAME]))
     lists.append(
-        INDENT2 + 'return %sService.deleteById(%s);' % (dicts[LOWER_CLASS_NAME], id_column[LOWER_PROPERTY_NAME]))
+        INDENT2 + 'return Result.success(%sService.deleteById(%s));' % (
+            dicts[LOWER_CLASS_NAME], id_column[LOWER_PROPERTY_NAME]))
     lists.append(INDENT + '}')
     return lists
 
@@ -62,11 +67,12 @@ def generate_selectById(dicts):
     lists.append(INDENT + ' * @return 结果')
     lists.append(INDENT + ' */')
     lists.append(INDENT + '@GetMapping("/selectById")')
-    lists.append(INDENT + 'public %sDO selectById(@RequestParam("%s") %s %s) {' % (
+    lists.append(INDENT + 'public Result<%sDO> selectById(@RequestParam("%s") %s %s) {' % (
         dicts[UPPER_CLASS_NAME], id_column[LOWER_PROPERTY_NAME], id_column[PROPERTY_DATA_TYPE],
         id_column[LOWER_PROPERTY_NAME]))
     lists.append(
-        INDENT2 + 'return %sService.selectById(%s);' % (dicts[LOWER_CLASS_NAME], id_column[LOWER_PROPERTY_NAME]))
+        INDENT2 + 'return Result.success(%sService.selectById(%s));' % (
+            dicts[LOWER_CLASS_NAME], id_column[LOWER_PROPERTY_NAME]))
     lists.append(INDENT + '}')
     return lists
 
@@ -80,11 +86,12 @@ def generate_selectList(dicts):
     lists.append(INDENT + ' * @return 结果列表')
     lists.append(INDENT + ' */')
     lists.append(INDENT + '@PostMapping("/selectList")')
-    lists.append(INDENT + 'public List<%sDO> selectList(@RequestBody %sDO %s) {' % (
+    lists.append(INDENT + 'public Result<List<%sDO>> selectList(@RequestBody %sDO %s) {' % (
         dicts[UPPER_CLASS_NAME], dicts[UPPER_CLASS_NAME],
         dicts[LOWER_CLASS_NAME]))
     lists.append(
-        INDENT2 + 'return %sService.selectList(%s);' % (dicts[LOWER_CLASS_NAME], dicts[LOWER_CLASS_NAME]))
+        INDENT2 + 'return Result.success(%sService.selectList(%s));' % (
+            dicts[LOWER_CLASS_NAME], dicts[LOWER_CLASS_NAME]))
     lists.append(INDENT + '}')
     return lists
 
@@ -97,12 +104,12 @@ def generate_selectPages(dicts):
     lists.append(INDENT + ' * @param %s 查询条件' % dicts[LOWER_CLASS_NAME])
     lists.append(INDENT + ' * @return 结果列表')
     lists.append(INDENT + ' */')
-    lists.append(INDENT + '@PostMapping("/selectList")')
+    lists.append(INDENT + '@PostMapping("/selectPages")')
     lists.append(
-        INDENT + 'public Page<%sDO> selectPages(@RequestBody %sDO %s, @RequestParam("pageNum") Integer pageNum, @RequestParam("pageSize") Integer pageSize) {' % (
+        INDENT + 'public Result<PageResult<%sDO>> selectPages(@RequestBody %sDO %s, @RequestParam("pageNum") Integer pageNum, @RequestParam("pageSize") Integer pageSize) {' % (
             dicts[UPPER_CLASS_NAME], dicts[UPPER_CLASS_NAME], dicts[LOWER_CLASS_NAME]))
     lists.append(
-        INDENT2 + 'return %sService.selectPages(%s, (pageNum - 1) * pageSize, pageSize);' % (
+        INDENT2 + 'return Result.success(%sService.selectPages(%s, new PageParameter(pageNum, pageSize)));' % (
             dicts[LOWER_CLASS_NAME], dicts[LOWER_CLASS_NAME]))
     lists.append(INDENT + '}')
     return lists
@@ -111,7 +118,8 @@ def generate_selectPages(dicts):
 def create_controller_class(dicts):
     lists = []
     lists.append('package %s;' % dicts[PACKAGE])
-    lists.append('import lombok.extern.slf4j.Slf4j;')
+    lists.append('import com.hb.unic.base.log.UnicLogger;')
+    lists.append('import com.hb.unic.base.log.UnicLoggerFactory;')
     lists.append('import org.springframework.web.bind.annotation.RestController;')
     lists.append('import org.springframework.web.bind.annotation.RequestMapping;')
     lists.append('import org.springframework.web.bind.annotation.GetMapping;')
@@ -120,7 +128,9 @@ def create_controller_class(dicts):
     lists.append('import org.springframework.web.bind.annotation.RequestParam;')
     lists.append('import java.util.List;')
     lists.append('import javax.annotation.Resource;')
-    lists.append('import com.hb.unic.common.standard.Page;')
+    lists.append('import com.hb.unic.base.web.PageResult;')
+    lists.append('import com.hb.unic.base.web.PageParameter')
+    lists.append('import com.hb.unic.base.web.Result;')
     lists.append('/**')
     lists.append(' * %s控制层' % dicts[TABLE_COMMENT])
     lists.append(' *')
@@ -130,6 +140,13 @@ def create_controller_class(dicts):
     lists.append('@RestController')
     lists.append('@RequestMapping("/%s")' % dicts[LOWER_CLASS_NAME])
     lists.append('public class %sController {' % dicts[UPPER_CLASS_NAME])
+    lists.append('')
+    lists.append(INDENT + '/**')
+    lists.append(INDENT + ' * log')
+    lists.append(INDENT + ' */')
+    lists.append(
+        INDENT + 'private static final UnicLogger LOGGER = UnicLoggerFactory.getLogger(%sController.class);' % (
+        dicts[UPPER_CLASS_NAME]))
     lists.append('')
     lists.append(INDENT + '/**')
     lists.append(INDENT + ' * %s服务层' % dicts[TABLE_COMMENT])

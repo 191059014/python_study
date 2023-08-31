@@ -114,12 +114,11 @@ def generate_selectPages(dicts):
     lists.append(INDENT + ' * 分页条件查询')
     lists.append(INDENT + ' *')
     lists.append(INDENT + ' * @param %s 查询条件' % dicts[LOWER_CLASS_NAME])
-    lists.append(INDENT + ' * @param startIndex 开始索引位置')
-    lists.append(INDENT + ' * @param pageSize 每页条数')
+    lists.append(INDENT + ' * @param pageParameter 分页参数')
     lists.append(INDENT + ' * @return 结果列表')
     lists.append(INDENT + ' */')
     lists.append(
-        INDENT + 'Page<%sDO> selectPages(%sDO %s, int startIndex, int pageSize);' % (
+        INDENT + 'PageResult<%sDO> selectPages(%sDO %s, PageParameter pageParameter);' % (
             dicts[UPPER_CLASS_NAME], dicts[UPPER_CLASS_NAME], dicts[LOWER_CLASS_NAME]))
     return lists
 
@@ -131,7 +130,8 @@ def create_service_class(dicts):
     lists.append('import java.util.List;')
     lists.append('import java.util.Set;')
     lists.append('')
-    lists.append('import com.hb.unic.common.standard.Page;')
+    lists.append('import com.hb.unic.base.web.PageResult;')
+    lists.append('import com.hb.unic.base.web.PageParameter;')
     lists.append('')
     lists.append('/**')
     lists.append(' * %s服务层' % dicts[TABLE_COMMENT])
